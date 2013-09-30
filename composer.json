@@ -1,0 +1,25 @@
+{
+    "name": "jordiwes/SSRIBMPgmCall",
+    "description": "Zend Framework 2 Program Call module for the IBM i",
+    "type": "library",
+    "keywords": ["zf2", "IBMi"],
+    "homepage": "https://github.com/jordiwes/SSRIBMPgmCall",
+    "license": "New BSD License",
+    "authors": [
+        {
+            "name": "Stephanie Rabbani",
+            "email": "stephanie@excelsystems.com",
+            "homepage": "http://www.bcdsoftware.com/",
+            "role": "Master"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "zendframework/zendframework": "2.*",
+    },
+    "autoload": {
+        "classmap": [
+            "Module.php"
+        ]
+    }
+}
