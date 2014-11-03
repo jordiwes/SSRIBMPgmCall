@@ -25,12 +25,7 @@ require_once('ToolkitService.php');
 
 class Module
 {
-	
-	private $type;
-	protected $eventManager;
 	public $tkobj;
-	protected $param = array();
-	protected $currentDs;
 	
 	/*
 	Usage:
@@ -48,7 +43,11 @@ class Module
 	
 	$myReturnVal = $returnValues['returnfield'];
 	*/
-
+	
+	/**
+	 * Get the instance of the Toolkit and attach the database connection
+	 * @param $tbdb The database connection
+	*/
 	function __construct($dbAdapter)
 	{
 		//get the Toolkit instance and pass it the db connection
@@ -61,10 +60,13 @@ class Module
 	
 	
 	/**
-	 * Function to call a program and pass parameters. Sets up the parameters and calls the Toolkit's PgmCall fundtion
-	 * Tip: leave the library blank to use the library list
+	 * Call an RPG or COBOL program and pass parms
+	 * @param $program The program to call
+	 * @param $lib     The program library
+	 * @param $parms   An array of parameters (see format above)
+	 * @return array   An array of return parameters
 	*/
-	public function callProgram($program,$lib,$parms)
+	function callProgram($program,$lib,$parms)
 	{
 		
 		foreach ($parms as $parm)
@@ -72,16 +74,7 @@ class Module
 			
 			if ($parm['ATTR'] == 'DS')
 			{
-				$ds = array();
-				foreach ($parm['DSOBJ'] as $subparm)
-				{
-					if (!isset($subparm['VARYING']))
-					{
-						$subparm['VARYING'] = 'off';
-					}
-					$ds[] = $this->addParm($subparm['ATTR'], $subparm['VAL'], $subparm['RETURN'], $subparm['TYPE'], $subparm['VARYING']);
-				}
-				$param[] = $this->tkobj->AddDataStruct($ds, $parm['DSNAME']);
+				$param[] = $this->addDataStructure($parm);
 			}
 			else
 			{
@@ -106,7 +99,38 @@ class Module
 	}
 	
 	/**
-	 * Use one of the toolkit functions to add the parameters to the call
+	 * Add a data structure to the toolkit call
+	 * @param $parms  The array of parms for the data structure
+	 * @return object Parms added to object
+	*/
+	function addDataStructure($parms)
+	{
+		$ds = array();
+		foreach ($parms['DSOBJ'] as $subparm)
+		{
+			if (!isset($subparm['VARYING']))
+			{
+				$subparm['VARYING'] = 'off';
+			}
+			if ($subparm['ATTR'] == 'DS')
+			{
+				$ds[] = $this->addDataStructure($subparm);
+			}
+			else
+			{
+				$ds[] = $this->addParm($subparm['ATTR'], $subparm['VAL'], $subparm['RETURN'], $subparm['TYPE'], $subparm['VARYING']);
+			}
+		}
+		return $this->tkobj->AddDataStruct($ds, $parms['DSNAME']);
+	}
+	
+	/**
+	 * Add a parameter to the toolkit call
+	 * @param $parmDesc  The description of the parm (ie. 10A or 9P0)
+	 * @param $parmValue The value of the parm
+	 * @param $rtnField  The name of the field you wish to return the value into
+	 * @param $type      Input or output type - IN/OUT/BOTH
+	 * @param $varying   Whether the parm is varying - on/off/2/4
 	*/
 	protected function addParm($parmDesc, $parmValue, $rtnField, $type, $varying='off')
 	{
